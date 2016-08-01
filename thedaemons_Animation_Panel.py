@@ -1,7 +1,10 @@
-###########################################
-# thedaemon's custom animation panel
-# Thanks to Frankie Hobbins, Joel Daniels
-###########################################
+##############################################
+##  thedaemon's Useful Animation Panel
+##  Thanks to Frankie Hobbins, Joel Daniels,
+##  Julien Duroure, Hjalti Hjalmarsson, Bassam Kurdali,
+##  Luciano Munoz
+##
+##############################################
 
 bl_info = {
     "name": "thedaemon's Animation Tools",
@@ -17,13 +20,13 @@ import bpy
 from bpy.props import *
 
 ########################
-####### FUNCTIONS ######
+######## FUNCTIONS ########
 ########################
 
 
-#######################
-###### OPERATORS ######
-#######################
+########################
+######## OPERATORS ########
+########################
 
 class ToggleSelectability(bpy.types.Operator):
     """Toggles all scene object selectability leaving rig always selectable """
@@ -53,9 +56,25 @@ class ToggleSelectability(bpy.types.Operator):
                 for ob in bpy.context.selected_objects:
                     ob.hide_select = not ob.hide_select
         return{'FINISHED'}
+
+
+class ToggleOpensubdiv(bpy.types.Operator):
+    """Toggles OpenSubdiv for all Objects for improved animation playback speed"""
+    bl_idname = "mesh.opensubdiv"
+    bl_label = "Mesh OpenSubdiv"
+    
+    def execute(self,context):
+        for mm in (m for o in bpy.context.scene.objects for m in o.modifiers if m.type=='SUBSURF'):
+            if mm.use_opensubdiv == True:
+                mm.use_opensubdiv = False
+            else:
+                if mm.use_opensubdiv == False:
+                    mm.use_opensubdiv = True
+        return{'FINISHED'}
+
         
 class ToggleXray(bpy.types.Operator):
-    """Toggle Xray mode """
+    """Toggles X-Ray mode for bones"""
     bl_idname = "bone.togglexray"
     bl_label = "Armature X-Ray"
 
@@ -110,6 +129,8 @@ class thedaemonsAnimationTools(bpy.types.Panel):
         col = layout.column(align=True)
         col.label(text="Selection and visibility")
         row = layout.row(align=True)
+        row.operator("mesh.opensubdiv", text ="OpenSubdiv")
+        row = layout.row(align=True)
         row.operator("bone.togglexray", text="X-Ray")
         row = layout.row(align=True)
         row.operator("bone.toggleselectability", text="Selectability")
@@ -127,6 +148,7 @@ def register():
     bpy.utils.register_class(AddFakeUsers)
     bpy.utils.register_class(RemoveFakeUsers)
     bpy.utils.register_class(ToggleSelectability)
+    bpy.utils.register_class(ToggleOpensubdiv)
     bpy.utils.register_class(ToggleXray)
     bpy.utils.register_class(thedaemonsAnimationTools)
 
@@ -135,6 +157,7 @@ def unregister():
     bpy.utils.unregister_class(AddFakeUsers)
     bpy.utils.unregister_class(RemoveFakeUsers)
     bpy.utils.unregister_class(ToggleSelectability)
+    bpy.utils.unregister_class(ToggleOpensubdiv)
     bpy.utils.unregister_class(ToggleXray)
     bpy.utils.unregister_class(thedaemonsAnimationTools)
 
