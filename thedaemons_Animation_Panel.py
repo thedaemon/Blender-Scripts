@@ -1,35 +1,29 @@
 ##############################################
-##  thedaemon's Useful Animation Panel
-##  Thanks to Frankie Hobbins, Joel Daniels,
-##  Julien Duroure, Hjalti Hjalmarsson, Bassam Kurdali,
-##  Luciano Munoz
-##
+##  thedaemon's Useful Animation Panel       #
+##  Thanks to Frankie Hobbins, Joel Daniels, #
+##  Julien Duroure, Hjalti Hjalmarsson,      #
+##  Bassam Kurdali, Luciano Munoz            #
 ##############################################
 
 bl_info = {
-    "name": "thedaemon's Animation Tools",
-    "author": "Brandon Ayers aka (thedaemon)",
-    "version": (0, 2, 0),
+    "name": "Animator's Tool Kit",
+    "author": "Brandon Ayers aka thedaemon",
+    "version": (0, 2, 1),
     "blender": (2, 77, 0),
     "description": "Various animation tools.",
-    "location": "View3D > Toolbar",
+    "location": "View3D > Toolbar > Animation",
     "category": "Animation"
     }
 
 import bpy
 from bpy.props import *
 
-########################
-######## FUNCTIONS ########
-########################
-
-
-########################
-######## OPERATORS ########
-########################
+#######################
+###### OPERATORS ######
+#######################
 
 class ToggleSelectability(bpy.types.Operator):
-    """Toggles all scene object selectability leaving rig always selectable """
+    """Toggles selectability of all objects leaving only Armature Selectable"""
     bl_idname = "bone.toggleselectability"
     bl_label = "Armature Selection Only"
 
@@ -57,7 +51,6 @@ class ToggleSelectability(bpy.types.Operator):
                     ob.hide_select = not ob.hide_select
         return{'FINISHED'}
 
-
 class ToggleOpensubdiv(bpy.types.Operator):
     """Toggles OpenSubdiv for all Objects for improved animation playback speed"""
     bl_idname = "mesh.opensubdiv"
@@ -72,6 +65,19 @@ class ToggleOpensubdiv(bpy.types.Operator):
                     mm.use_opensubdiv = True
         return{'FINISHED'}
 
+## USELESS BECAUSE BLENDER ALREADY HAS THIS FREAKING COMMAND            
+class ClearAllTransforms(bpy.types.Operator):
+    """Clears all transforms on the bone I hope"""
+    bl_idname = "pose.clearall"
+    bl_label = "Clear Transforms"
+    
+    def execute(self,context):
+        for obj in bpy.data.objects:
+            if obj.type == 'ARMATURE':
+                bpy.ops.pose.rot_clear()
+                bpy.ops.pose.loc_clear()
+                bpy.ops.pose.scale_clear()
+        return{'FINISHED'}
         
 class ToggleXray(bpy.types.Operator):
     """Toggles X-Ray mode for bones"""
@@ -83,7 +89,7 @@ class ToggleXray(bpy.types.Operator):
             if obj.type == 'ARMATURE':
                 obj.show_x_ray = not obj.show_x_ray
         return{'FINISHED'}
-
+## CURRENTLY UNUSED BUT I WILL USE AT A LATER DATE
 class AddFakeUsers(bpy.types.Operator):
     """Add Fake users to all actions to stop them getting deleted on save"""
     bl_idname = "bone.addfakeusers"
@@ -93,7 +99,7 @@ class AddFakeUsers(bpy.types.Operator):
         for a in bpy.data.actions:
             a.use_fake_user=True
         return{'FINISHED'}
-
+## CURENTELY UNUSED BUT I WILL USE AT A LATER DATE
 class RemoveFakeUsers(bpy.types.Operator):
     """Remove Fake users from all actions to help them getting removed on save"""
     bl_idname = "bone.removefakeusers"
@@ -125,20 +131,53 @@ class thedaemonsAnimationTools(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+        # Defining shortcuts for commands
         obj = context.object
-        col = layout.column(align=True)
-        col.label(text="Selection and visibility")
-        row = layout.row(align=True)
-        row.operator("mesh.opensubdiv", text ="OpenSubdiv")
-        row = layout.row(align=True)
-        row.operator("bone.togglexray", text="X-Ray")
-        row = layout.row(align=True)
-        row.operator("bone.toggleselectability", text="Selectability")
-        row = layout.row(align=True)
-        row.prop(obj, "hide", text="hide object")
-        row.prop(obj, "hide_select", text="hide select")
-        row.prop(context.object, "hide_render")
+        userpref = context.user_preferences
+        edit = userpref.edit 
 
+############################
+        col = layout.column(align=True)
+        col.label(text="Optimization")
+        #row = layout.row(align=True)
+        ## This makes each button seperate
+        row = col.row()
+        row.operator("mesh.opensubdiv", text ="OpenSubdiv")
+        #row = layout.row(align=True)
+        row.operator("bone.togglexray", text="X-Ray")
+        #row = layout.row(align=True)
+        row.operator("bone.toggleselectability", text="Selectability")
+############################        
+        col = layout.column(align=True)
+        col.label(text="Visibility")
+        ## This makes the buttons grouped
+        row = layout.row(align=True)
+        row.prop(obj, "hide", text="Object")
+        row.prop(obj, "hide_select", text="Select")
+        row.prop(context.object, "Render")
+############################
+        col = layout.column(align=True)
+        col.label(text="Reset Transforms")
+        row = layout.row(align=True)
+        row.operator("pose.loc_clear", text="Location")
+        row.operator("pose.rot_clear", text="Rotation")
+        row.operator("pose.scale_clear", text="Scale")
+        col = layout.column(align=True)
+        row = col.row()
+        row.operator("pose.transforms_clear", text="Reset All")
+###########################        
+        col = layout.column(align=True)
+        col.label(text="Inbetween")
+        row = col.row()
+        row.operator("pose.breakdown", text="Breakdowner")        
+        row.operator("pose.push", text="Push")
+        row.operator("pose.relax", text="Relax")
+############################        
+        col.label(text="New Key Type")
+        col = layout.column(align=True)
+        col.prop(edit, "keyframe_new_interpolation_type", text='Keys')
+        col.prop(edit, "keyframe_new_handle_type", text="Handles")
+        
 ######################
 ###### REGISTER ######
 ######################
@@ -151,6 +190,7 @@ def register():
     bpy.utils.register_class(ToggleOpensubdiv)
     bpy.utils.register_class(ToggleXray)
     bpy.utils.register_class(thedaemonsAnimationTools)
+    bpy.utils.register_class(ClearAllTransforms)
 
 def unregister():
 
@@ -160,6 +200,7 @@ def unregister():
     bpy.utils.unregister_class(ToggleOpensubdiv)
     bpy.utils.unregister_class(ToggleXray)
     bpy.utils.unregister_class(thedaemonsAnimationTools)
+    bpy.utils.unregister_class(ClearAllTransforms)
 
 if __name__ == "__main__":
     register()  
