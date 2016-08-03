@@ -2,7 +2,8 @@
 A collection of my scripts and modified scripts
 
 # Animator's Toolbox
-
+### *Screenshot subject to be inaccurate*
+![ToolShot](http://i.imgur.com/DdkM7nF.png)
 >The goal here is to put all of the tools an animator needs in one place, without over crowding it with hotkeys that are already quick and easy to use.
 
 ##Roadmap
