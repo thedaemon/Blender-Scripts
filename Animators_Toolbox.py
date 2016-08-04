@@ -7,6 +7,7 @@ bl_info = {
     "blender": (2, 77, 0),
     "description": "A set of tools specifically for animators.",
     "location": "View3D > Toolbar > Animation",
+    "tracker_url": "https://github.com/thedaemon/Blender-Scripts",
     "category": "Animation"
     }
 
