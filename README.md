@@ -1,5 +1,5 @@
 # Blender-Scripts
-A collection of my scripts and modified scripts
+A collection of my scripts and modified scripts. Free to use how you will.
 
 # Animator's Toolbox
 ### *Screenshot subject to be inaccurate*
