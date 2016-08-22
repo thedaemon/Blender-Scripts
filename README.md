@@ -3,11 +3,11 @@ A collection of my scripts and modified scripts. Free to use how you will.
 
 # Presto
 > A theme to mimic Pixar's Presto Animation Software
-[PrestoThemeScreenshot](http://i.imgur.com/LfOoRyw.png)
+![PrestoThemeScreenshot](http://i.imgur.com/LfOoRyw.png)
 
 # Animator's Toolbox
 ### *latest screenshot*
-[LatestToolShot](http://i.imgur.com/oNJrC2J.png)
+![LatestToolShot](http://i.imgur.com/oNJrC2J.png)
 ### *older screenshot*
 ![v2screenshot](http://i.imgur.com/f4MEE1Y.png)
 ![v1screenshot](http://i.imgur.com/DdkM7nF.png)
