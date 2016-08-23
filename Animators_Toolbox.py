@@ -3,19 +3,19 @@
 # Hjalti Hjalmarsson, Bassam Kurdali, Luciano Munoz, Cristian Hasbun,
 # and anyone that I left out!
 #
-# Latest update: adding Advanced Boomsmash
+# Latest update: 2.78 Keyframe Type support!
+#     "support": "TESTING",
 
 bl_info = {
     "name": "Animator's Toolbox",
     "description": "A set of tools specifically for animators.",
     "author": "Brandon Ayers (thedaemon)",
-    "version": (0, 3),
+    "version": (0, 4),
     "blender": (2, 77, 0),
     "location": "View3D > Toolbar > Animation > Animator's Toolbox",
     "warning": "", # used for warning icon and text in addons panel
     "wiki_url": "https://github.com/thedaemon/Blender-Scripts",
     "tracker_url": "https://github.com/thedaemon/Blender-Scripts/issues",
-    "support": "TESTING",
     "category": "Animation"
     }
 
@@ -25,8 +25,6 @@ from bpy.props import *
 from bpy.types import Operator
 
 KEYMAPS = list()
-
-
 
 # FEATURE: Jump forward/backward every N frames. Currently hardcoded variable.
 class AnimatorsToolboxFrameJump(bpy.types.Operator):
@@ -341,11 +339,11 @@ class animatorstoolboxData(PropertyGroup):
                                     "lay the deform options for this bone.",
                                  default=False)
 
-                                 
+
 def draw_optimization_panel(context, layout):
     scene = context.scene
     rd = scene.render
-    
+
     col = layout.column(align=True)
     #col.label(text="Optimizations:")
     #col.layout.column(align=True)
@@ -376,7 +374,7 @@ def draw_optimization_panel(context, layout):
     #subsub = col.column()
     #subsub.active = cscene.use_camera_cull
     #subsub.prop(cscene, "camera_cull_margin")
-    
+
 # Animator's Toolbox Main Panel
 def draw_animatorstoolbox_panel(context, layout):
 #--Defining shortcuts for commands
@@ -392,31 +390,37 @@ def draw_animatorstoolbox_panel(context, layout):
 
 #--Selection
     col = layout.column(align=True)
-    col.label(text="Selection:")
+    #col.label(text="Selection:")
     row = layout.row(align=True)
     row.operator("bone.toggleselectability", text="Select Armature Only")
+    row.prop(obj, "show_x_ray", text="X Ray")
+    #--Auto IK
+    col = layout.column(align=True)
+    row = col.row()
+    row.prop(context.active_object.data, "use_auto_ik", text="Auto IK")
+    # row.prop(obj, "bone.toggleautoik", text="Auto IK")
 
 #--Reset Transforms
     col = layout.column(align=True)
-    col.label(text="Reset Transforms: Axis Not working yet!")
+    #col.label(text="Reset Transforms: Axis Not working yet!")
     row = col.row()
     row.operator("pose.transforms_clear", text="Reset All")
     row = col.row(align=True)
     row.operator("pose.loc_clear", text="Location")
     row.operator("pose.rot_clear", text="Rotation")
     row.operator("pose.scale_clear", text="Scale")
-    row = layout.row(align=True)
-    row.operator("pose.loc_clear", text="X")
-    row.operator("pose.loc_clear", text="Y")
-    row.operator("pose.loc_clear", text="Z")
+    #row = layout.row(align=True)
+    #row.operator("pose.loc_clear", text="X")
+    #row.operator("pose.loc_clear", text="Y")
+    #row.operator("pose.loc_clear", text="Z")
     #row = col.row(align=True)
-    row.operator("pose.rot_clear", text="X")
-    row.operator("pose.rot_clear", text="Y")
-    row.operator("pose.rot_clear", text="Z")
+    #row.operator("pose.rot_clear", text="X")
+    #row.operator("pose.rot_clear", text="Y")
+    #row.operator("pose.rot_clear", text="Z")
     #row = col.row(align=True)
-    row.operator("pose.scale_clear", text="X")
-    row.operator("pose.scale_clear", text="Y")
-    row.operator("pose.scale_clear", text="Z")
+    #row.operator("pose.scale_clear", text="X")
+    #row.operator("pose.scale_clear", text="Y")
+    #row.operator("pose.scale_clear", text="Z")
     #col = layout.column(align=True)
 
 
@@ -433,15 +437,11 @@ def draw_animatorstoolbox_panel(context, layout):
     row.operator("pose.breakdown", text="Breakdowner")
     row.operator("pose.push", text="Push")
     row.operator("pose.relax", text="Relax")
-#--Auto IK      
-    col = layout.column(align=True)
-    row = col.row()                     
-    row.prop(context.active_object.data, "use_auto_ik", text="Auto IK")
-    # row.prop(obj, "bone.toggleautoik", text="Auto IK")
+
 
 #-- X- Ray
-    row.prop(obj, "show_x_ray", text="X Ray")
-    
+    #row.prop(obj, "show_x_ray", text="X Ray")
+
 #--Keying
     col = layout.column(align=True)
     col.label(text="Keyframes:")
@@ -463,8 +463,10 @@ def draw_animatorstoolbox_panel(context, layout):
 #--New Key Type
     col = layout.column(align=True)
     col.label(text="New Key Type:")
-    col.prop(edit, "keyframe_new_interpolation_type", text='Keys')
-    col.prop(edit, "keyframe_new_handle_type", text="Handles")
+    row = layout.row(align=True)
+    row.prop(edit, "keyframe_new_interpolation_type", text="", icon_only=False)
+    row.prop(edit, "keyframe_new_handle_type", text="", icon_only=False)
+    row.prop(toolsettings, "keyframe_type", text="", icon_only=False)
 
 #--Motion Path
     pchan = context.active_pose_bone
@@ -491,14 +493,14 @@ class AnimatorsToolBox(bpy.types.Panel):
     def draw_header(self, context):
         layout = self.layout
 #animatorstoolboxDataUIProps = context.window_manager.animatorstoolboxDataUI
-        #layout.prop('animatorstoolboxDataUI', "displayMode", text="")        
+        #layout.prop('animatorstoolboxDataUI', "displayMode", text="")
         DoBTN = self.layout
         DoBTN.operator('bs.doboom', text = '', icon = 'RENDER_ANIMATION')
 #--Draw Toolboxes
     def draw(self, context):
         layout = self.layout
         draw_animatorstoolbox_panel(context, layout)
-        
+
 class OptimizationPanel(bpy.types.Panel):
     bl_label = "Optimization"
     bl_space_type = 'VIEW_3D'
@@ -507,7 +509,7 @@ class OptimizationPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         draw_optimization_panel(context, layout)
-        
+
 class BoomsmashPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
@@ -515,13 +517,13 @@ class BoomsmashPanel(bpy.types.Panel):
     bl_label = "Advanced Boomsmash Options"
     #bl_context = 'objectmode'
 
-    
+
 
 
     def draw(self, context):
         layout = self.layout
         draw_boomsmash_panel(context, layout)
-            
+
 #animatorstoolboxData = context.window_manager.animatorstoolboxDataUI
 #scene = context.scene
 #preferences = context.user_preferences.addons["animatorstoolbox"].preferences
@@ -530,7 +532,7 @@ class BoomsmashPanel(bpy.types.Panel):
 #   draw_boomsmash_panel(context, layout)
 #else:
 #   draw_animatorstoolbox_panel(context, layout)
-                
+
 # BOOMSMASH
 def draw_boomsmash_panel(context, layout):
     #layout.row().prop(self, "boomsmash_panel", expand=True)
@@ -542,12 +544,12 @@ def draw_boomsmash_panel(context, layout):
         boom_props = wm.boom_props
     else:
         boom_props = cs.boom_props
-#-File Name    
+#-File Name
     col.label(text = 'boomsmash filename:')
     row = col.row()
     row.prop(cs.boom_props, 'filename')
     row.operator('bs.setfilename', text = '', icon = 'FILE_BLEND')
-#-Folder    
+#-Folder
     col.label(text = 'boomsmash folder:')
     row = col.row()
     row.prop(cs.boom_props, 'dirname')
@@ -567,7 +569,7 @@ def draw_boomsmash_panel(context, layout):
     col.label(text = 'Final Resolution: {} x {}'.format(str(final_res_x)[:-2],
               str(final_res_y)[:-2]))
     col.prop(boom_props, 'resolution_percentage', slider = True )
-    col.separator()    
+    col.separator()
     #col.label(text="BoomSmash:")
     #col.operator('bs.doboom', text = 'BoomSmash', icon = 'RENDER_ANIMATION')
     split = col.split()
