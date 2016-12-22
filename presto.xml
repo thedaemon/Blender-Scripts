@@ -240,7 +240,7 @@
     <view_3d>
       <ThemeView3D grid="#3a363b"
                    clipping_border_3d="#313131ff"
-                   wire="#3a363b"
+                   wire="#d8d2d9"
                    wire_edit="#1d1d1d"
                    gp_vertex="#000000"
                    gp_vertex_select="#ff8500"
@@ -398,11 +398,7 @@
       </ThemeGraphEditor>
     </graph_editor>
     <file_browser>
-      <ThemeFileBrowser selected_file="#ff8c19"
-                        scrollbar="#a0a0a0"
-                        scroll_handle="#7f7070"
-                        active_file="#828282"
-                        active_file_text="#bebabf">
+      <ThemeFileBrowser selected_file="#ff8c19">
         <space>
           <ThemeSpaceGeneric back="#59555a"
                              title="#bebabf"
@@ -428,13 +424,6 @@
             </panelcolors>
           </ThemeSpaceGeneric>
         </space>
-        <space_list>
-          <ThemeSpaceListGeneric list="#39353a"
-                                 list_title="#bebabf"
-                                 list_text="#bebabf"
-                                 list_text_hi="#d8d2d9">
-          </ThemeSpaceListGeneric>
-        </space_list>
       </ThemeFileBrowser>
     </file_browser>
     <nla_editor>
@@ -512,6 +501,7 @@
                       keyframe_jitter_selected="#bebabf"
                       keyframe_border="#000000ff"
                       keyframe_border_selected="#000000ff"
+                      keyframe_scale_factor="1"
                       summary="#59555aff">
         <space>
           <ThemeSpaceGeneric back="#3d393e"
