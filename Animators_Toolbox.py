@@ -3,38 +3,35 @@
 # Hjalti Hjalmarsson, Bassam Kurdali, Luciano Munoz, Cristian Hasbun,
 # and anyone that I left out!
 #
-# Latest update: 2.78 Keyframe Type support!
+# Latest update: Rethinking the amount of tools and interface.
+# Removed tools that are better left to hotkeys.
+# Will add preferences of hotkeys later.
 #     "support": "TESTING",
-
 bl_info = {
     "name": "Animator's Toolbox",
     "description": "A set of tools specifically for animators.",
     "author": "Brandon Ayers (thedaemon)",
-    "version": (0, 4),
-    "blender": (2, 77, 0),
+    "version": (0, 5, 1),
+    "blender": (2, 78, 0),
     "location": "View3D > Toolbar > Animation > Animator's Toolbox",
     "warning": "", # used for warning icon and text in addons panel
     "wiki_url": "https://github.com/thedaemon/Blender-Scripts",
     "tracker_url": "https://github.com/thedaemon/Blender-Scripts/issues",
     "category": "Animation"
     }
-
 import os.path
 import bpy
 from bpy.props import *
 from bpy.types import Operator
-
 KEYMAPS = list()
 
 # FEATURE: Jump forward/backward every N frames. Currently hardcoded variable.
+# the frame jump amount needs to be in preferences along with hotkey selector (viewer?)
 class AnimatorsToolboxFrameJump(bpy.types.Operator):
-
     """Jump a number of frames forward/backwards"""
     bl_idname = "screen.animatorstools_frame_jump"
     bl_label = "Jump Frames"
-
     forward = bpy.props.BoolProperty(default=True)
-
     def execute(self, context):
         scene = context.scene
         framedelta = 4
@@ -42,7 +39,6 @@ class AnimatorsToolboxFrameJump(bpy.types.Operator):
             scene.frame_current = scene.frame_current + framedelta
         else:
             scene.frame_current = scene.frame_current - framedelta
-
         return {"FINISHED"}
 
 # FEATURE: A toggle to keep the animator from selecting something other
@@ -52,7 +48,6 @@ class ToggleSelectability(bpy.types.Operator):
     leaving only Armatures selectable"""
     bl_idname = "bone.toggleselectability"
     bl_label = "Armature Selection Only"
-
     def execute(self, context):
         do_i_hide_select = not bpy.context.active_object.hide_select
         if bpy.context.selected_objects == []:
@@ -76,22 +71,19 @@ class ToggleSelectability(bpy.types.Operator):
                 for ob in bpy.context.selected_objects:
                     ob.hide_select = not ob.hide_select
         return{'FINISHED'}
-
 # Useless because blender already has this freaking command but I programmed
 # it anyways. I may use it for specific axis template.
 class ClearAllTransforms(bpy.types.Operator):
     """Clears all transforms on the bone I hope"""
     bl_idname = "pose.clearall"
     bl_label = "Clear Transforms"
-
     def execute(self,context):
-        for obj in bpy.data.objects:
-            if obj.type == 'ARMATURE':
+        for object in bpy.data.objects:
+            if object.type == 'ARMATURE':
                 bpy.ops.pose.rot_clear()
                 bpy.ops.pose.loc_clear()
                 bpy.ops.pose.scale_clear()
         return{'FINISHED'}
-
 # FEATURE: A toggle for OpenSubdiv on all objects in scene with a Subdivision
 # Surface Modifier.
 class ToggleOpensubdiv(bpy.types.Operator):
@@ -101,7 +93,6 @@ class ToggleOpensubdiv(bpy.types.Operator):
     bl_label = "Mesh OpenSubdiv"
     # Does nothing, testing.
     my_bool = bpy.props.BoolProperty(name="Toggle Option")
-
     def execute(self,context):
         for mm in (m for o in bpy.context.scene.objects
                    for m in o.modifiers if m.type=='SUBSURF'):
@@ -111,41 +102,35 @@ class ToggleOpensubdiv(bpy.types.Operator):
                 if mm.use_opensubdiv == False:
                     mm.use_opensubdiv = True
         return{'FINISHED'}
-
 # Feature: Turns OpenSubdiv on for all meshes with Subdivision Surface
 # Modifiers for improved viewport performance.
 class OpensubdivOn(bpy.types.Operator):
     bl_idname = "opensubdiv.on"
     bl_label = "OpenSubdiv On"
-
     def execute(self,context):
         for mm in (m for o in bpy.context.scene.objects
                    for m in o.modifiers if m.type=='SUBSURF'):
             mm.use_opensubdiv = True
         return{'FINISHED'}
-
 # Feature: Turns OpenSubdiv on for all meshes with Subdivision Surface
 # Modifiers for improved viewport performance.
 class OpensubdivOff(bpy.types.Operator):
     bl_idname = "opensubdiv.off"
     bl_label = "OpenSubdiv Off"
-
     def execute(self,context):
         for mm in (m for o in bpy.context.scene.objects
                    for m in o.modifiers if m.type=='SUBSURF'):
             mm.use_opensubdiv = False
         return{'FINISHED'}
-
 # FEATURE: Simple X-Ray toggle for Armature
 class ToggleXray(bpy.types.Operator):
     """Toggles X-Ray mode for bones"""
     bl_idname = "bone.togglexray"
     bl_label = "Armature X-Ray"
-
     def execute(self, context):
-        for obj in bpy.data.objects:
-            if obj.type == 'ARMATURE':
-                obj.show_x_ray = not obj.show_x_ray
+        for object in bpy.data.objects:
+            if object.type == 'ARMATURE':
+                object.show_x_ray = not object.show_x_ray
         return{'FINISHED'}
 # FEATURE: Simple Auto-IK toggle for Armature
 #context.active_object.data, "use_auto_ik", text="Auto IK")
@@ -153,21 +138,17 @@ class ToggleAutoIK(bpy.types.Operator):
     """Toggles Auto IK mode for bones"""
     bl_idname = "bone.toggleautoik"
     bl_label = "Armature Auto IK"
-
     def execute(self, context):
-        for obj in bpy.data.active_object:
-            if obj.type == 'ARMATURE':
-                obj.use_auto_ik = not obj.use_auto_ik
+        for object in bpy.data.active_object:
+            if object.type == 'ARMATURE':
+                object.use_auto_ik = not object.use_auto_ik
         return{'FINISHED'}
-
 # FEATURE: Advanced Boomsmash version 011 classes
 class BoomProps(bpy.types.PropertyGroup):
-
     global_toggle = BoolProperty(
         name = 'Global',
         description = 'Same boomsmash settings for all scenes in file.',
         default = False)
-
     #twm.image_settings = bpy.types.ImageFormatSettings(
     #                        bpy.context.scene.render.image_settings)
 
@@ -175,59 +156,48 @@ class BoomProps(bpy.types.PropertyGroup):
     #    name = 'Active Camera',
     #    description = 'Always renders from the active camera
     #                   that's set in the Scene properties')
-
     incremental = BoolProperty(
         name = 'Incremental',
         description = 'Save incremental boomsmashes.',
         default = False)
-
     use_stamp = BoolProperty(
         name = 'Stamp',
         description = 'Turn on stamp .',
         default = False)
-
     transparent = BoolProperty(
         name = 'Transparent',
         description = 'Make background transparent .',
         default = False)
-
     autoplay = BoolProperty(
         name = 'Autoplay',
         description = 'Automatically play boomsmash after making it.',
         default = False)
-
     unsimplify = BoolProperty(
         name = 'Unsimplify',
         description = "subdivision surface levels at it's render settings.",
         default = False)
-
     onlyrender = BoolProperty(
         name = 'Only Render',
         description = 'Only have renderable objects visible during.',
         default = False)
-
     frame_skip = IntProperty(
         name = 'Skip Frames',
         description = 'Number of frames to skip',
         default = 0,
         min = 0)
-
     resolution_percentage = IntProperty(
         name = 'Resolution Percentage',
         description = ' a percentage of the Render Resolution.',
         default = 50,
         min = 0,
         max = 100)
-
     #DEBUG
     #pu.db
-
     dirname = StringProperty(
         name = '',
         description = 'Folder where your boomsmash will be stored',
         default = bpy.app.tempdir,
         subtype = 'DIR_PATH')
-
     filename = StringProperty(
         name = '',
         description = 'Filename where your boomsmash will be stored',
@@ -239,7 +209,6 @@ class setDirname(bpy.types.Operator):
     bl_label = 'BoomsmashDirname'
     bl_description = 'boomsmash use blendfile directory'
     bl_options = {'REGISTER', 'INTERNAL'}
-
     def execute(self, context):
         cs = context.scene
         cs.boom_props.dirname = os.path.dirname(bpy.data.filepath)
@@ -250,7 +219,6 @@ class setFilename(bpy.types.Operator):
     bl_label = 'BoomsmashFilename'
     bl_description = 'boomsmash use blendfile name _ scene name'
     bl_options = {'REGISTER', 'INTERNAL'}
-
     def execute(self, context):
         cs = context.scene
         blend_name = os.path.basename(
@@ -267,33 +235,31 @@ class DoBoom(bpy.types.Operator):
     def execute(self, context):
         cs = context.scene
         wm = context.window_manager
-        rd = context.scene.render
+        render = context.scene.render
         sd = context.space_data
 
         if wm.boom_props.global_toggle:
             boom_props = wm.boom_props
         else:
             boom_props = cs.boom_props
-
         #pu.db
-        #guardo settings
-        old_use_stamp = rd.use_stamp
+        old_use_stamp = render.use_stamp
         old_onlyrender = sd.show_only_render
-        old_simplify = rd.use_simplify
-        old_filepath = rd.filepath
-        old_alpha_mode = rd.alpha_mode
-        #old_image_settings = rd.image_settings
-        old_resolution_percentage = rd.resolution_percentage
+        old_simplify = render.use_simplify
+        old_filepath = render.filepath
+        old_alpha_mode = render.alpha_mode
+        #old_image_settings = render.image_settings
+        old_resolution_percentage = render.resolution_percentage
         old_frame_step = cs.frame_step
-        #afecto settings originales
-        rd.use_stamp = boom_props.use_stamp
+        #Changes settings of originals
+        render.use_stamp = boom_props.use_stamp
         sd.show_only_render = boom_props.onlyrender
         if boom_props.unsimplify:
-            rd.use_simplify = False
-        rd.filepath = cs.boom_props.dirname + cs.boom_props.filename
-        rd.alpha_mode = 'TRANSPARENT' if boom_props.transparent else 'SKY'
-        #rd.image_settings = boom_props.image_settings
-        rd.resolution_percentage = boom_props.resolution_percentage
+            render.use_simplify = False
+        render.filepath = cs.boom_props.dirname + cs.boom_props.filename
+        render.alpha_mode = 'TRANSPARENT' if boom_props.transparent else 'SKY'
+        #render.image_settings = boom_props.image_settings
+        render.resolution_percentage = boom_props.resolution_percentage
         cs.frame_step = boom_props.frame_skip + 1
         #view_pers = context.area.spaces[0].region_3d.view_perspective
         #if boom_props.scene_cam and view_pers is not 'CAMERA':
@@ -302,31 +268,39 @@ class DoBoom(bpy.types.Operator):
         bpy.ops.render.opengl(animation = True)
         if boom_props.autoplay:
             bpy.ops.render.play_rendered_anim()
-        #devuelvo settings
-        rd.use_stamp = old_use_stamp
+        #developer settings
+        render.use_stamp = old_use_stamp
         sd.show_only_render = old_onlyrender
-        rd.use_simplify = old_simplify
-        rd.filepath = old_filepath
-        rd.alpha_mode = old_alpha_mode
-        #rd.image_settings = old_image_settings
-        rd.resolution_percentage = old_resolution_percentage
+        render.use_simplify = old_simplify
+        render.filepath = old_filepath
+        render.alpha_mode = old_alpha_mode
+        #render.image_settings = old_image_settings
+        render.resolution_percentage = old_resolution_percentage
         context.scene.frame_step = old_frame_step
         #if boom_props.scene_cam and view_pers is not 'CAMERA':
         #    bpy.ops.view3d.viewnumpad(type = 'CAMERA')
         return {'FINISHED'}
-
-
-## UI ##
+class QuickMotionPath(bpy.types.Operator):
+	"""Create motion path by preview range"""
+	bl_label = "Calculate"
+	bl_idname = "cenda.motion_pats"
+	def execute(self, context ):
+		if(bpy.context.scene.use_preview_range):
+			startFrame = bpy.context.scene.frame_preview_start
+			endFrame = bpy.context.scene.frame_preview_end
+		else:
+			startFrame = bpy.context.scene.frame_start
+			endFrame = bpy.context.scene.frame_end
+		bpy.ops.pose.paths_calculate(start_frame=startFrame, end_frame=endFrame, bake_location='TAILS')		
+		return{'FINISHED'}        
+## UI --
 from bpy.types import PropertyGroup, Panel
 from bpy.props import *
-
 class animatorstoolboxData(PropertyGroup):
     bl_idname = 'animatorstoolboxDataUI'
     """
     UI property group for the add-on  WORK IN PROGRESS
-
     Options to adjust how the panel is displayed.
-
     bpy > types > WindowManager > animatorstoolboxDataUI
     bpy > context > window_manager > animatorstoolboxDataUI
     """
@@ -335,117 +309,38 @@ class animatorstoolboxData(PropertyGroup):
                                "are generally needed while rigging."
                                "(Useful for animating.)",
                                default=False)
-    boomsmashOptions = BoolProperty(name='Deform Options', description="Disp"
+    deformOptions = BoolProperty(name='Deform Options', description="Disp"
                                     "lay the deform options for this bone.",
                                  default=False)
-
-
-def draw_optimization_panel(context, layout):
-    scene = context.scene
-    rd = scene.render
-
-    col = layout.column(align=True)
-    #col.label(text="Optimizations:")
-    #col.layout.column(align=True)
-    #col.label(text="OpenSubdiv")
-    row = layout.row(align=True)
-    row.label(text="OpenSubdiv")
-    row.operator("opensubdiv.on", text="On")
-    row.operator("opensubdiv.off", text="Off")
-
-#--Simplify
-    #col = layout.column(align=True)
-    #col.label(text="Simplify:")
-    row = layout.row(align=True)
-    row.prop(rd, "use_simplify", text="Use Simplify")
-    row.prop(rd, "simplify_subdivision", text="Subdivision")
-    #layout.active = rd.use_simplify
-    #split = layout.split()
-    #col = split.column()
-    #col.label(text="Viewport:")
-    #col.prop(rd, "simplify_subdivision", text="Subdivision")
-    #col.prop(rd, "simplify_child_particles", text="Child Particles")
-    #col = split.column()
-    #col.label(text="Render:")
-    #col.prop(rd, "simplify_subdivision_render", text="Subdivision")
-    #col.prop(rd, "simplify_child_particles_render", text="Child Particles")
-    #col = split.column()
-    #col.prop(cscene, "use_camera_cull")
-    #subsub = col.column()
-    #subsub.active = cscene.use_camera_cull
-    #subsub.prop(cscene, "camera_cull_margin")
-
-# Animator's Toolbox Main Panel
-def draw_animatorstoolbox_panel(context, layout):
-#--Defining shortcuts for commands
-    obj = context.object
-    userpref = context.user_preferences
-    obj = context.object
-    edit = userpref.edit
-    toolsettings = context.tool_settings
+    breakdowner_percentage = IntProperty(
+        name = 'Breakdowner Percentage',
+        description = ' a percentage for the Breakdowner Button.',
+        default = 50,
+        min = 0,
+        max = 100)
+def draw_animatorstoolbox_panel(context, layout):    
     scene = context.scene
     screen = context.screen
-    rd = scene.render
+    render = scene.render
     cscene = scene.cycles
-
-#--Selection
+    object = context.object    
+    toolsettings = context.tool_settings
+    userpref = context.user_preferences
+    edit = userpref.edit
+    #
     col = layout.column(align=True)
-    #col.label(text="Selection:")
-    row = layout.row(align=True)
-    row.operator("bone.toggleselectability", text="Select Armature Only")
-    row.prop(obj, "show_x_ray", text="X Ray")
-    #--Auto IK
-    col = layout.column(align=True)
-    row = col.row()
-    row.prop(context.active_object.data, "use_auto_ik", text="Auto IK")
-    # row.prop(obj, "bone.toggleautoik", text="Auto IK")
-
-#--Reset Transforms
-    col = layout.column(align=True)
-    #col.label(text="Reset Transforms: Axis Not working yet!")
-    row = col.row()
-    row.operator("pose.transforms_clear", text="Reset All")
     row = col.row(align=True)
-    row.operator("pose.loc_clear", text="Location")
-    row.operator("pose.rot_clear", text="Rotation")
-    row.operator("pose.scale_clear", text="Scale")
-    #row = layout.row(align=True)
-    #row.operator("pose.loc_clear", text="X")
-    #row.operator("pose.loc_clear", text="Y")
-    #row.operator("pose.loc_clear", text="Z")
-    #row = col.row(align=True)
-    #row.operator("pose.rot_clear", text="X")
-    #row.operator("pose.rot_clear", text="Y")
-    #row.operator("pose.rot_clear", text="Z")
-    #row = col.row(align=True)
-    #row.operator("pose.scale_clear", text="X")
-    #row.operator("pose.scale_clear", text="Y")
-    #row.operator("pose.scale_clear", text="Z")
-    #col = layout.column(align=True)
-
-
-#--Pose Tools
+    box = row.box()    
+    box.operator("pose.transforms_clear", text="Reset All")
+    box.operator("show_x_ray", text="X-Ray")
+    box.operator("bone.toggleselectability", text="Select Armature Only")
     col = layout.column(align=True)
-    col.label(text="Pose:")
-    #row = col.row(align=True)
-    #row.operator("pose.copy", text="Copy")
-    #row.operator("pose.paste", text="Paste")
-    #row.operator("pose.paste", text="Flipped").flipped = True
-    # This will seperate the rows
-    #col = layout.column(align=True)
     row = col.row(align=True)
-    row.operator("pose.breakdown", text="Breakdowner")
-    row.operator("pose.push", text="Push")
-    row.operator("pose.relax", text="Relax")
-
-
-#-- X- Ray
-    #row.prop(obj, "show_x_ray", text="X Ray")
-
-#--Keying
+    row.operator("pose.copy", text="Copy")
+    row.operator("pose.paste", text="Paste").flipped = False
+    row.operator("pose.paste", text="Flip").flipped = True
     col = layout.column(align=True)
-    col.label(text="Keyframes:")
-    row = layout.row(align=True)
+    row = col.row(align=True)
     row.prop(toolsettings, "use_keyframe_insert_auto", text="", toggle=True)
     if toolsettings.use_keyframe_insert_auto:
         row.prop(toolsettings, "use_keyframe_insert_keyingset",
@@ -453,35 +348,47 @@ def draw_animatorstoolbox_panel(context, layout):
         if screen.is_animation_playing:
             subsub = row.row()
             subsub.prop(toolsettings, "use_record_with_nla", toggle=True)
-    row.prop_search(scene.keying_sets_all, "active",
-                    scene, "keying_sets_all", text="")
-    row.operator("screen.animation_play", text="", icon='PLAY')
-    row.operator("screen.keyframe_jump", text="",
-                 icon='PREV_KEYFRAME').next = False
-    row.operator("screen.keyframe_jump", text="",
-                 icon='NEXT_KEYFRAME').next = True
-#--New Key Type
+    row.prop_search(scene.keying_sets_all, "active", scene, "keying_sets_all", text="")
     col = layout.column(align=True)
-    col.label(text="New Key Type:")
-    row = layout.row(align=True)
-    row.prop(edit, "keyframe_new_interpolation_type", text="", icon_only=False)
-    row.prop(edit, "keyframe_new_handle_type", text="", icon_only=False)
-    row.prop(toolsettings, "keyframe_type", text="", icon_only=False)
-
-#--Motion Path
+    row = col.row(align=True)
+    row.operator("pose.relax", text="Relax")
+    row.operator("pose.breakdown", text="Tween")
+    row.operator("pose.push", text="Push")    
+    #row.prop(scene, 'breakdowner_percentage', slider=True )
+    #--Motion Path
     pchan = context.active_pose_bone
     mpath = pchan.motion_path if pchan else None
     col = layout.column(align=True)
-    col.label(text="Motion Paths:")
+    col.label(text="Paths Preview Range:")
     if mpath:
         row = col.row(align=True)
         row.operator("pose.paths_update", text="Update")
         row.operator("pose.paths_clear", text="", icon='X')
     else:
-        col.operator("pose.paths_calculate", text="Calculate")
-
-
-# Animator's ToolBox Draw Calls
+        #col.operator("pose.paths_calculate", text="Calculate")
+        col.operator("cenda.motion_pats", icon = 'ANIM_DATA')        
+    col = layout.column(align=True)
+    row = col.row(align=True)
+    row.operator("opensubdiv.on", text="OpenSubdiv")
+    row.operator("opensubdiv.off", text="Off")
+    col.separator()
+#--Simplify
+    #col = layout.column(align=True)
+    #col.label(text="Simplify:")
+    col = layout.column(align=True)
+    row = col.row(align=True)
+    row.prop(render, "use_simplify", text="Simplify")
+    row = col.row(align=True)
+    row.prop(render, "simplify_subdivision", text="Subdivision")
+#--New Key Type
+    col.separator()
+    col = layout.column(align=True)
+    row = col.row()
+    row.prop(edit, "keyframe_new_interpolation_type", text="", icon_only=False)
+    row = col.row()
+    row.prop(edit, "keyframe_new_handle_type", text="", icon_only=False)
+    row = col.row()
+    row.prop(toolsettings, "keyframe_type", text="", icon_only=False)
 class AnimatorsToolBox(bpy.types.Panel):
     """Creates a custom Animator Panel in the 3D View"""
     bl_label = "Animator's Toolbox"
@@ -494,52 +401,28 @@ class AnimatorsToolBox(bpy.types.Panel):
         layout = self.layout
 #animatorstoolboxDataUIProps = context.window_manager.animatorstoolboxDataUI
         #layout.prop('animatorstoolboxDataUI', "displayMode", text="")
-        DoBTN = self.layout
-        DoBTN.operator('bs.doboom', text = '', icon = 'RENDER_ANIMATION')
+        DoButton = self.layout
+        DoButton.operator('bs.doboom', text = '', icon = 'RENDER_ANIMATION')
 #--Draw Toolboxes
     def draw(self, context):
         layout = self.layout
         draw_animatorstoolbox_panel(context, layout)
-
-class OptimizationPanel(bpy.types.Panel):
-    bl_label = "Optimization"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
-    bl_category = 'Animation'
-    def draw(self, context):
-        layout = self.layout
-        draw_optimization_panel(context, layout)
-
+# BOOMSMASH        
 class BoomsmashPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_category = 'Animation'
-    bl_label = "Advanced Boomsmash Options"
+    bl_label = "Boomsmash"
     #bl_context = 'objectmode'
-
-
-
-
     def draw(self, context):
         layout = self.layout
         draw_boomsmash_panel(context, layout)
-
-#animatorstoolboxData = context.window_manager.animatorstoolboxDataUI
-#scene = context.scene
-#preferences = context.user_preferences.addons["animatorstoolbox"].preferences
-#if preferences.use_boomsmash:
-#   draw_animatorstoolbox_panel(context, layout)
-#   draw_boomsmash_panel(context, layout)
-#else:
-#   draw_animatorstoolbox_panel(context, layout)
-
-# BOOMSMASH
 def draw_boomsmash_panel(context, layout):
     #layout.row().prop(self, "boomsmash_panel", expand=True)
     col = layout.column(align = True)
     cs = context.scene
     wm = context.window_manager
-    rd = context.scene.render
+    render = context.scene.render
     if wm.boom_props.global_toggle:
         boom_props = wm.boom_props
     else:
@@ -564,8 +447,8 @@ def draw_boomsmash_panel(context, layout):
     subrow.prop(boom_props, 'frame_skip', text = 'Skip')
     subrow.prop(context.scene, 'frame_preview_end', text = 'End')
     col.separator()
-    final_res_x = (rd.resolution_x * boom_props.resolution_percentage) / 100
-    final_res_y = (rd.resolution_y * boom_props.resolution_percentage) / 100
+    final_res_x = (render.resolution_x * boom_props.resolution_percentage) / 100
+    final_res_y = (render.resolution_y * boom_props.resolution_percentage) / 100
     col.label(text = 'Final Resolution: {} x {}'.format(str(final_res_x)[:-2],
               str(final_res_y)[:-2]))
     col.prop(boom_props, 'resolution_percentage', slider = True )
@@ -583,12 +466,6 @@ def draw_boomsmash_panel(context, layout):
     subcol.prop(boom_props, 'autoplay')
     subcol.prop(boom_props, 'unsimplify')
     col.separator()
-    #col.label(text = 'Output Format:')
-    #col.template_image_settings(wm.image_settings, color_management = False)
-
-
-
-
 def register():
     bpy.utils.register_module(__name__)
 #---Boomsmash
@@ -613,7 +490,8 @@ def register():
         "LEFT_ARROW", "PRESS", shift=True)
     kmi.properties.forward = False
     KEYMAPS.append((km, kmi))
-
+#---New Preferences Tab Apply after Blender Restart FIX
+#--update_panel(None, bpy.context)
 def unregister():
     bpy.utils.unregister_module(__name__)
 #---Boomsmash
@@ -623,7 +501,5 @@ def unregister():
     for km, kmi in KEYMAPS:
         km.keymap_items.remove(kmi)
     KEYMAPS.clear()
-
-# The End
 if __name__ == "__main__":
     register()
